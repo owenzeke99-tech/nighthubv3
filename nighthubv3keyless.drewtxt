@@ -1,0 +1,241 @@
+-- [[ Night Hub - Key System (Black & White Theme - 24H Key Saving) ]]
+-- Key: NightHubV3NakwowojejeoLapqowhjeoeeijeiei
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:FindFirstChild("PlayerGui") or CoreGui
+
+-- Cấu hình Key & Link
+local KEY_FILE = "NightHub_StealAnEggs_Key.json"
+local correctKey = "NightHubV3NakwowojejeoLapqowhjeoeeijeiei"
+local getKeyLink = "https://link4m.net/o4it4"
+local KEY_DURATION = 86400 -- 24 giờ tính bằng giây (24 * 60 * 60)
+
+-- Kiểm tra xem Key ẩn đã lưu còn hiệu lực hay không (trong vòng 24h)
+local function isKeySaved()
+	if writefile and readfile and isfile then
+		if isfile(KEY_FILE) then
+			local success, data = pcall(function()
+				return HttpService:JSONDecode(readfile(KEY_FILE))
+			end)
+			if success and type(data) == "table" then
+				if data.Key == correctKey and data.ExpireTime then
+					if os.time() < data.ExpireTime then
+						return true
+					end
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- Lưu Key ẩn kèm mốc thời gian hết hạn (24h)
+local function saveKey()
+	if writefile then
+		pcall(function()
+			local saveData = {
+				Key = correctKey,
+				ExpireTime = os.time() + KEY_DURATION
+			}
+			writefile(KEY_FILE, HttpService:JSONEncode(saveData))
+		end)
+	end
+end
+
+-- Hàm chạy script chính sau khi xác minh Key thành công
+local function runMainScript()
+	print("Key verified! Executing Night Hub script...")
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/WhiteX1208/Scripts/refs/heads/main/StealAnEggs.luau"))()
+end
+
+-- Tự động bỏ qua Key Menu nếu đã lưu Key còn hiệu lực
+if isKeySaved() then
+	runMainScript()
+	return
+end
+
+-- Clear UI cũ nếu tồn tại
+if PlayerGui:FindFirstChild("NightHubKeySystem") then
+	PlayerGui.NightHubKeySystem:Destroy()
+end
+
+-- Tạo GUI Chính
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NightHubKeySystem"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+-- Khung Menu Chính (Kích thước lớn 440 x 280)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+MainFrame.BackgroundTransparency = 0.05
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -220, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 440, 0, 280)
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Parent = MainFrame
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Transparency = 0.85
+MainStroke.Thickness = 1.2
+
+-- Tiêu đề "Night Hub"
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 22)
+Title.Size = UDim2.new(1, 0, 0, 32)
+Title.Font = Enum.Font.FredokaOne
+Title.Text = "Night Hub"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 28
+
+-- Phụ đề nhỏ phía dưới
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Name = "SubTitle"
+SubTitle.Parent = MainFrame
+SubTitle.BackgroundTransparency = 1
+SubTitle.Position = UDim2.new(0, 0, 0, 56)
+SubTitle.Size = UDim2.new(1, 0, 0, 18)
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.Text = "KEY VERIFICATION SYSTEM"
+SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
+SubTitle.TextSize = 11
+
+-- Ô nhập Key (Input Box)
+local InputContainer = Instance.new("Frame")
+InputContainer.Parent = MainFrame
+InputContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+InputContainer.BorderSizePixel = 0
+InputContainer.Position = UDim2.new(0.07, 0, 0, 95)
+InputContainer.Size = UDim2.new(0.86, 0, 0, 48)
+
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 10)
+InputCorner.Parent = InputContainer
+
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Parent = InputContainer
+InputStroke.Color = Color3.fromRGB(255, 255, 255)
+InputStroke.Transparency = 0.9
+InputStroke.Thickness = 1
+
+local TextBox = Instance.new("TextBox")
+TextBox.Parent = InputContainer
+TextBox.BackgroundTransparency = 1
+TextBox.Position = UDim2.new(0.04, 0, 0, 0)
+TextBox.Size = UDim2.new(0.92, 0, 1, 0)
+TextBox.Font = Enum.Font.Gotham
+TextBox.PlaceholderText = "Enter key here..."
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.PlaceholderColor3 = Color3.fromRGB(110, 110, 120)
+TextBox.TextSize = 14
+TextBox.ClearTextOnFocus = false
+
+-- Thông báo trạng thái (Status Text)
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0.07, 0, 0, 150)
+StatusLabel.Size = UDim2.new(0.86, 0, 0, 20)
+StatusLabel.Font = Enum.Font.GothamMedium
+StatusLabel.Text = ""
+StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusLabel.TextSize = 12
+
+-- Container nút bấm
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Parent = MainFrame
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Position = UDim2.new(0.07, 0, 0, 185)
+ButtonContainer.Size = UDim2.new(0.86, 0, 0, 48)
+
+-- Nút Get Key
+local GetKeyBtn = Instance.new("TextButton")
+GetKeyBtn.Parent = ButtonContainer
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+GetKeyBtn.Position = UDim2.new(0, 0, 0, 0)
+GetKeyBtn.Size = UDim2.new(0.48, -5, 1, 0)
+GetKeyBtn.Font = Enum.Font.GothamBold
+GetKeyBtn.Text = "Get Key"
+GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyBtn.TextSize = 14
+
+local GetKeyCorner = Instance.new("UICorner")
+GetKeyCorner.CornerRadius = UDim.new(0, 10)
+GetKeyCorner.Parent = GetKeyBtn
+
+local GetKeyStroke = Instance.new("UIStroke")
+GetKeyStroke.Parent = GetKeyBtn
+GetKeyStroke.Color = Color3.fromRGB(255, 255, 255)
+GetKeyStroke.Transparency = 0.85
+GetKeyStroke.Thickness = 1
+
+-- Nút Verify Key
+local VerifyBtn = Instance.new("TextButton")
+VerifyBtn.Parent = ButtonContainer
+VerifyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+VerifyBtn.Position = UDim2.new(0.52, 5, 0, 0)
+VerifyBtn.Size = UDim2.new(0.48, -5, 1, 0)
+VerifyBtn.Font = Enum.Font.GothamBold
+VerifyBtn.Text = "Verify Key"
+VerifyBtn.TextColor3 = Color3.fromRGB(10, 10, 12)
+VerifyBtn.TextSize = 14
+
+local VerifyCorner = Instance.new("UICorner")
+VerifyCorner.CornerRadius = UDim.new(0, 10)
+VerifyCorner.Parent = VerifyBtn
+
+-- Hiệu ứng Lắc Nhẹ Mượt Mà khi sai Key
+local function smoothShake()
+	local basePos = UDim2.new(0.5, -220, 0.5, -140)
+	local offsets = {10, -9, 7, -5, 3, 0}
+	
+	for _, offset in ipairs(offsets) do
+		local tween = TweenService:Create(
+			MainFrame,
+			TweenInfo.new(0.04, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+			{Position = basePos + UDim2.new(0, offset, 0, 0)}
+		)
+		tween:Play()
+		tween.Completed:Wait()
+	end
+end
+
+-- Xử lý sự kiện kiểm tra Key
+VerifyBtn.MouseButton1Click:Connect(function()
+	local inputKey = TextBox.Text
+	if inputKey == correctKey then
+		StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+		StatusLabel.Text = "Key Verified! Access Granted."
+		saveKey()
+		task.wait(0.4)
+		ScreenGui:Destroy()
+		runMainScript()
+	else
+		StatusLabel.TextColor3 = Color3.fromRGB(220, 80, 80)
+		StatusLabel.Text = "Invalid Key. Please try again."
+		TextBox.Text = "" -- Tự động xoá chữ khi nhập sai
+		smoothShake()
+	end
+end)
+
+-- Xử lý sự kiện Get Key (Copy link4m)
+GetKeyBtn.MouseButton1Click:Connect(function()
+	setclipboard(getKeyLink)
+	StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+	StatusLabel.Text = "Key link copied to clipboard!"
+end)
